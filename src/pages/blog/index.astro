@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// PRD US-4 AC2: zero published posts must render a clean empty state, not
+// an error. `draft: true` posts (including the throwaway template fixture)
+// are excluded from this listing per docs/content-schema.md Section 3.
+const posts = (await getCollection('blog', (post) => !post.data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title="Blog" description="Technical notes and write-ups from Pranish Adhikari.">
+  <h1>Blog</h1>
+  {
+    posts.length > 0 ? (
+      <ul class="post-list">
+        {posts.map((post) => (
+          <li>
+            <h2>
+              <a href={`/blog/${post.id}`}>{post.data.title}</a>
+            </h2>
+            <p class="meta">
+              <time datetime={post.data.pubDate.toISOString()}>
+                {dateFormatter.format(post.data.pubDate)}
+              </time>
+            </p>
+            <p>{post.data.summary}</p>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty-state">No posts published yet. Check back soon.</p>
+    )
+  }
+</BaseLayout>

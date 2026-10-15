@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const profileEntries = await getCollection('profile');
+const profile = profileEntries[0]?.data;
+
+const allProjects = await getCollection('projects');
+const featuredProjects = allProjects
+  .filter((project) => project.data.featured)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const name = profile?.name ?? 'Pranish Adhikari';
+const headline = profile?.headline ?? '[VERIFY]';
+---
+
+<BaseLayout title={name}>
+  <section class="hero">
+    <h1>{name}</h1>
+    <p class="hero__headline">{headline}</p>
+    <div class="cta-row">
+      <a class="button button--primary" href="/projects">View Projects</a>
+      <a class="button button--secondary" href="/blog">Read the Blog</a>
+      <a class="button button--secondary" href="/about">About Me</a>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="featured-projects-heading">
+    <h2 id="featured-projects-heading">Featured Projects</h2>
+    {
+      featuredProjects.length > 0 ? (
+        <ul class="card-grid">
+          {featuredProjects.map((project) => <ProjectCard project={project} />)}
+        </ul>
+      ) : (
+        <p class="empty-state">
+          Featured projects are coming soon. In the meantime, see the full{' '}
+          <a href="/projects">projects list</a>.
+        </p>
+      )
+    }
+  </section>
+</BaseLayout>

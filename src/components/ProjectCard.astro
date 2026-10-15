@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, summary, techStack } = project.data;
+---
+
+<li class="card">
+  <h3><a href={`/projects/${project.id}`}>{title}</a></h3>
+  <p>{summary}</p>
+  {
+    techStack.length > 0 && (
+      <ul class="tag-list" aria-label="Tech stack">
+        {techStack.map((tech) => (
+          <li class="tag">{tech}</li>
+        ))}
+      </ul>
+    )
+  }
+</li>

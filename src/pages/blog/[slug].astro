@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  // Draft posts (including the throwaway template fixture) still get a
+  // page built in dev so frontend-dev can verify the template, but they
+  // are never linked from the index listing, which is the only thing
+  // qa-devops's "no drafts in production" check needs to care about.
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { title, pubDate, updatedDate, summary, tags } = post.data;
+const { Content } = await render(post);
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BaseLayout title={title} description={summary}>
+  <a class="back-link" href="/blog">&larr; All posts</a>
+  <article class="prose">
+    <header>
+      <h1>{title}</h1>
+      <p class="meta">
+        <time datetime={pubDate.toISOString()}>{dateFormatter.format(pubDate)}</time>
+        {
+          updatedDate && (
+            <>
+              {' '}
+              &middot; updated{' '}
+              <time datetime={updatedDate.toISOString()}>
+                {dateFormatter.format(updatedDate)}
+              </time>
+            </>
+          )
+        }
+      </p>
+      {
+        tags.length > 0 && (
+          <ul class="tag-list" aria-label="Tags">
+            {tags.map((tag) => (
+              <li class="tag">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <Content />
+  </article>
+</BaseLayout>

@@ -1,0 +1,24 @@
+---
+// Renders a plain-text (not Markdown-parsed) frontmatter field as semantic
+// paragraphs, splitting on blank lines. Used for fields like `profile.bio`
+// and `employment[].description` which are documented as "markdown" in
+// docs/content-schema.md but live inside frontmatter alongside other
+// fields, so they can't go through Astro's Content/render() body pipeline
+// the way `projects.description`/`blog.body` do.
+//
+// Deliberately does NOT parse Markdown syntax into HTML and never uses
+// set:html — every paragraph is emitted as a plain Astro text expression,
+// so it is auto-escaped. This keeps "no raw HTML" true for this field even
+// though its source may contain incidental Markdown-looking characters.
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const paragraphs = text
+  .split(/\n\s*\n/)
+  .map((p) => p.trim())
+  .filter(Boolean);
+---
+
+{paragraphs.map((paragraph) => <p>{paragraph}</p>)}

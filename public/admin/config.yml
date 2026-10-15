@@ -1,0 +1,375 @@
+########################################################################
+# Sveltia CMS configuration — pranishadhikari.com
+#
+# Scope note (per docs/decisions.md Section 7 and docs/content-schema.md):
+# v1 exposes EXACTLY three collections here: profile, projects, blog.
+# `skills`, `certifications`, `socials`, and `settings` are documented in
+# docs/content-schema.md for the Astro side but are explicitly NOT wired
+# into this CMS config in v1 — do not add them without a new decision from
+# Pranish recorded in docs/decisions.md.
+#
+# There is no Hack Me / CTF collection, field, or option anywhere in this
+# file, and there must never be (docs/PRD.md Section 3).
+#
+# No field below uses a "raw HTML" markdown mode — every markdown widget is
+# pinned to `modes: [rich_text]`, which removes the raw-HTML toggle from the
+# editor entirely (per docs/content-schema.md cross-cutting rule 1).
+########################################################################
+
+backend:
+  name: github
+  # [VERIFY] — no git remote was configured in this repo at the time this
+  # file was written, so the exact owner/repo could not be confirmed from
+  # the codebase. The value below is inferred only from the local git
+  # noreply address (69747762+pranishAD@users.noreply.github.com) and the
+  # working folder name — Pranish must confirm or correct this before the
+  # CMS can authenticate against the real repo.
+  repo: pranishAD/pranishadhikari.com
+  branch: main
+  # URL of the self-hosted OAuth Cloudflare Worker (see worker/ in this
+  # repo). Must be set to the Worker's deployed URL after `wrangler deploy`.
+  base_url: https://REPLACE-WITH-YOUR-WORKER-SUBDOMAIN.workers.dev # [VERIFY] set after deploying worker/
+  auth_endpoint: auth
+
+# Simple publish mode: saving in the CMS commits directly to `branch` above
+# (no editorial/PR workflow). Matches the "one editor, no servers" setup.
+publish_mode: simple
+
+# Where uploaded media (e.g. profile avatar) is written in the repo, and
+# the public URL path it's served from once Astro copies public/ as-is.
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+site_url: https://pranishadhikari.com
+display_url: https://pranishadhikari.com
+
+logo_url: ""
+
+locale: en
+
+collections:
+  # ------------------------------------------------------------------
+  # 1. profile — single-entry "About / bio" file collection
+  #    Astro source: src/content/profile/profile.md
+  #    Matches docs/content-schema.md Section 1.
+  # ------------------------------------------------------------------
+  - name: profile
+    label: "About / Profile"
+    description: "Pranish's About-page bio. There is exactly one entry — this is not a list of posts."
+    files:
+      - name: profile
+        label: "About / Bio"
+        file: "src/content/profile/profile.md"
+        fields:
+          - label: "Full name"
+            name: name
+            widget: string
+            required: true
+            default: "Pranish Adhikari"
+            hint: "Pranish's full name as shown on the Home and About pages."
+
+          - label: "Headline"
+            name: headline
+            widget: string
+            required: true
+            hint: 'One-line identity shown on Home and About, e.g. "Cybersecurity Student". Use the literal text [VERIFY] if this is not yet confirmed.'
+            pattern: ["^.{1,120}$", "Must be 1–120 characters."]
+
+          - label: "Location"
+            name: location
+            widget: string
+            required: false
+            hint: "City/region, only if Pranish wants it shown publicly. Leave blank to omit, or use [VERIFY] if undecided."
+
+          - label: "Education"
+            name: education
+            widget: list
+            required: false
+            hint: "Degrees/programs, most recent first. Leave this list empty if none are confirmed yet — it does not need at least one entry."
+            default: []
+            fields:
+              - label: "Institution"
+                name: institution
+                widget: string
+                required: true
+                hint: "School/university name, or [VERIFY] if not yet confirmed."
+              - label: "Program"
+                name: program
+                widget: string
+                required: true
+                hint: "Degree/program name, or [VERIFY] if not yet confirmed."
+              - label: "Start date"
+                name: startDate
+                widget: datetime
+                required: true
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                hint: "When this program started."
+              - label: "End date"
+                name: endDate
+                widget: datetime
+                required: false
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                hint: "Leave blank if still ongoing."
+              - label: "Confirmed by Pranish?"
+                name: verified
+                widget: boolean
+                required: true
+                default: false
+                hint: "Leave OFF until Pranish has personally confirmed every fact in this entry."
+
+          - label: "Employment"
+            name: employment
+            widget: list
+            required: false
+            hint: "Jobs/internships, most recent first. Leave this list empty if none are confirmed yet."
+            default: []
+            fields:
+              - label: "Employer"
+                name: employer
+                widget: string
+                required: true
+                hint: "Company/organization name, or [VERIFY] if not yet confirmed."
+              - label: "Role"
+                name: role
+                widget: string
+                required: true
+                hint: "Job title, or [VERIFY] if not yet confirmed."
+              - label: "Start date"
+                name: startDate
+                widget: datetime
+                required: true
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                hint: "When this role started."
+              - label: "End date"
+                name: endDate
+                widget: datetime
+                required: false
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                hint: "Leave blank if this role is current."
+              - label: "Description"
+                name: description
+                widget: markdown
+                required: true
+                modes: [rich_text]
+                buttons: [bold, italic, link, bulleted-list, numbered-list]
+                hint: "Short write-up of this role. Plain Markdown only — no raw HTML. Use [VERIFY] as placeholder text if details aren't confirmed yet."
+              - label: "Confirmed by Pranish?"
+                name: verified
+                widget: boolean
+                required: true
+                default: false
+                hint: "Leave OFF until Pranish has personally confirmed every fact in this entry."
+
+          - label: "Bio"
+            name: bio
+            widget: markdown
+            required: true
+            modes: [rich_text]
+            buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+            hint: "Main About-page body text. Plain Markdown only — no raw HTML. The whole field may be the literal text [VERIFY] as a placeholder."
+
+          - label: "Avatar / headshot"
+            name: avatar
+            widget: image
+            required: false
+            media_library:
+              config:
+                max_file_size: 5000000
+            hint: "Optional headshot image. Leave empty rather than uploading a placeholder/stock photo."
+
+          - label: "Resume URL"
+            name: resumeUrl
+            widget: string
+            required: false
+            pattern:
+              [
+                "^(\\[VERIFY\\]|https://.+|/.+)$",
+                "Must be a full https:// URL, a site-relative path starting with /, or the literal text [VERIFY].",
+              ]
+            hint: "Link to a hosted resume/CV file, if any. Leave blank to omit, or use [VERIFY] if undecided."
+
+  # ------------------------------------------------------------------
+  # 2. projects — one Markdown file per project
+  #    Astro source: src/content/projects/*.md
+  #    Matches docs/content-schema.md Section 2.
+  # ------------------------------------------------------------------
+  - name: projects
+    label: "Projects"
+    description: "Cybersecurity (and related) project write-ups shown on the Projects page. May have zero entries while content is being drafted."
+    folder: "src/content/projects"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    summary: "{{title}} — {{date}}"
+    fields:
+      - label: "Title"
+        name: title
+        widget: string
+        required: true
+        hint: "Project title shown on cards and the project page. Use [VERIFY] as a placeholder if undecided."
+        pattern: ["^.{1,120}$", "Must be 1–120 characters."]
+
+      - label: "Summary"
+        name: summary
+        widget: string
+        required: true
+        hint: "Short 1–2 sentence summary shown on project listing cards (max 200 characters)."
+        pattern: ["^.{1,200}$", "Must be 1–200 characters."]
+
+      - label: "Full write-up"
+        name: description
+        widget: markdown
+        required: true
+        modes: [rich_text]
+        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+        hint: "Full project write-up body. Plain Markdown only — no raw HTML. May be the literal text [VERIFY] as a placeholder."
+
+      - label: "Tech stack"
+        name: techStack
+        widget: list
+        required: false
+        default: []
+        hint: 'Technologies/tools used, one per entry, e.g. "Python", "Nmap". May be left empty while drafting.'
+        field:
+          label: "Technology"
+          name: tech
+          widget: string
+          required: true
+          hint: "A single tool/technology/language name."
+
+      - label: "Role"
+        name: role
+        widget: string
+        required: false
+        hint: "Pranish's role on this project, if it was a team project. Leave blank if solo, or use [VERIFY] if undecided."
+
+      - label: "Links"
+        name: links
+        widget: list
+        required: false
+        default: []
+        hint: "Repo / write-up / demo links, if any exist publicly yet. Leave empty if none exist — do not invent a link."
+        fields:
+          - label: "Label"
+            name: label
+            widget: string
+            required: true
+            hint: 'Link text, e.g. "GitHub repo".'
+          - label: "URL"
+            name: url
+            widget: string
+            required: true
+            pattern:
+              [
+                "^(\\[VERIFY\\]|https://.+)$",
+                "Must be a full https:// URL, or the literal text [VERIFY] if the link isn't public yet.",
+              ]
+            hint: "Full https:// URL, or [VERIFY] if not yet public."
+          - label: "Type"
+            name: type
+            widget: select
+            required: true
+            options:
+              - { label: "Repository", value: "repo" }
+              - { label: "Write-up", value: "writeup" }
+              - { label: "Demo", value: "demo" }
+              - { label: "Other", value: "other" }
+            hint: "What kind of link this is."
+
+      - label: "Date"
+        name: date
+        widget: datetime
+        required: true
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        hint: "Project date, used for sort order. Pick the closest known real date if the exact date isn't confirmed — do not fabricate a precise date."
+
+      - label: "Featured on Home page?"
+        name: featured
+        widget: boolean
+        required: false
+        default: false
+        hint: "Turn ON to let this project appear in a featured subset on the Home page."
+
+      - label: "Confirmed by Pranish?"
+        name: verified
+        widget: boolean
+        required: true
+        default: false
+        hint: "Must be turned ON before this project can go live — leave OFF until every fact above has been confirmed by Pranish (no [VERIFY] text remaining)."
+
+  # ------------------------------------------------------------------
+  # 3. blog — one Markdown file per post
+  #    Astro source: src/content/blog/*.md
+  #    Matches docs/content-schema.md Section 3.
+  # ------------------------------------------------------------------
+  - name: blog
+    label: "Blog"
+    description: "Technical notes, write-ups, and learning-log posts. May have zero published entries — the blog index must render cleanly either way."
+    folder: "src/content/blog"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    summary: "{{title}} — {{pubDate}}{{#if draft}} (draft){{/if}}"
+    fields:
+      - label: "Title"
+        name: title
+        widget: string
+        required: true
+        hint: "Post title shown on the blog index and post page."
+        pattern: ["^.{1,150}$", "Must be 1–150 characters."]
+
+      - label: "Publish date"
+        name: pubDate
+        widget: datetime
+        required: true
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        hint: "Used for newest-first sorting on the blog index."
+
+      - label: "Updated date"
+        name: updatedDate
+        widget: datetime
+        required: false
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        hint: "Set only if this post is revised after its original publish date. Leave blank otherwise."
+
+      - label: "Summary"
+        name: summary
+        widget: string
+        required: true
+        hint: "Short excerpt shown on the blog index (1–2 sentences)."
+        pattern: ["^.{1,300}$", "Must be 1–300 characters."]
+
+      - label: "Body"
+        name: body
+        widget: markdown
+        required: true
+        modes: [rich_text]
+        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+        hint: "Post content — headings, lists, code blocks, links. Plain Markdown only — no raw HTML is possible from this editor."
+
+      - label: "Tags"
+        name: tags
+        widget: list
+        required: false
+        default: []
+        hint: "Free-text tags for Pranish's own taxonomy, e.g. writeup, networking. Optional."
+        field:
+          label: "Tag"
+          name: tag
+          widget: string
+          required: true
+          hint: "A single tag word/phrase."
+
+      - label: "Draft"
+        name: draft
+        widget: boolean
+        required: true
+        default: true
+        hint: "Keep ON until this post is ready to publish. Draft posts must be excluded from the live blog index/build."

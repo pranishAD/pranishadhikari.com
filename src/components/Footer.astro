@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+
+const socials = (await getCollection('socials')).sort(
+  (a, b) => (a.data.displayOrder ?? 0) - (b.data.displayOrder ?? 0),
+);
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>&copy; {year} Pranish Adhikari.</p>
+    {
+      socials.length > 0 && (
+        <ul class="social-links">
+          {socials.map((social) => (
+            <li>
+              <a href={social.data.url}>{social.data.label}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</footer>

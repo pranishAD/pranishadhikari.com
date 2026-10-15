@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+const { title, summary, techStack, role, links, date } = project.data;
+const { Content } = await render(project);
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const linkTypeLabels: Record<string, string> = {
+  repo: 'Repository',
+  writeup: 'Write-up',
+  demo: 'Demo',
+  other: 'Link',
+};
+---
+
+<BaseLayout title={title} description={summary}>
+  <a class="back-link" href="/projects">&larr; All projects</a>
+  <article class="prose">
+    <header>
+      <h1>{title}</h1>
+      <p class="meta">
+        <time datetime={date.toISOString()}>{dateFormatter.format(date)}</time>
+        {role && <> &middot; {role}</>}
+      </p>
+      {
+        techStack.length > 0 && (
+          <ul class="tag-list" aria-label="Tech stack">
+            {techStack.map((tech) => (
+              <li class="tag">{tech}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <Content />
+
+    {
+      links.length > 0 && (
+        <section aria-labelledby="project-links-heading">
+          <h2 id="project-links-heading">Links</h2>
+          <ul>
+            {links.map((link) => (
+              <li>
+                <a href={link.url}>
+                  {link.label || linkTypeLabels[link.type] || 'Link'}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>

@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ParagraphText from '../components/ParagraphText.astro';
+import { getCollection } from 'astro:content';
+
+const profileEntries = await getCollection('profile');
+const profile = profileEntries[0]?.data;
+
+const skills = await getCollection('skills');
+const skillsByCategory = new Map<string, typeof skills>();
+for (const skill of skills) {
+  const list = skillsByCategory.get(skill.data.category) ?? [];
+  list.push(skill);
+  skillsByCategory.set(skill.data.category, list);
+}
+
+// Per docs/content-schema.md Section 5: a certification only appears on the
+// live About page once `verified` is true.
+const certifications = (await getCollection('certifications')).filter(
+  (cert) => cert.data.verified,
+);
+
+const education = profile?.education ?? [];
+const employment = profile?.employment ?? [];
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short' });
+
+function formatRange(start: Date, end: Date | null): string {
+  const startLabel = dateFormatter.format(start);
+  const endLabel = end ? dateFormatter.format(end) : 'Present';
+  return `${startLabel} – ${endLabel}`;
+}
+---
+
+<BaseLayout title="About" description="About Pranish Adhikari — background, skills, and certifications.">
+  <h1>About</h1>
+
+  <section class="section prose" aria-labelledby="bio-heading">
+    <h2 id="bio-heading" class="visually-hidden">Bio</h2>
+    <ParagraphText text={profile?.bio ?? '[VERIFY]'} />
+    {
+      profile?.resumeUrl && (
+        <p>
+          <a class="button button--secondary" href={profile.resumeUrl}>Download Résumé</a>
+        </p>
+      )
+    }
+  </section>
+
+  {
+    employment.length > 0 && (
+      <section class="section" aria-labelledby="employment-heading">
+        <h2 id="employment-heading">Experience</h2>
+        <ul class="post-list">
+          {employment.map((job) => (
+            <li>
+              <h3>{job.role} — {job.employer}</h3>
+              <p class="meta">{formatRange(job.startDate, job.endDate)}</p>
+              <ParagraphText text={job.description} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    education.length > 0 && (
+      <section class="section" aria-labelledby="education-heading">
+        <h2 id="education-heading">Education</h2>
+        <ul class="post-list">
+          {education.map((item) => (
+            <li>
+              <h3>{item.program} — {item.institution}</h3>
+              <p class="meta">{formatRange(item.startDate, item.endDate)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="skills-heading">
+    <h2 id="skills-heading">Skills</h2>
+    {
+      skillsByCategory.size > 0 ? (
+        Array.from(skillsByCategory.entries()).map(([category, items]) => (
+          <div>
+            <h3>{category}</h3>
+            <ul class="tag-list">
+              {items.map((skill) => (
+                <li class="tag">
+                  {skill.data.name}
+                  {skill.data.proficiency ? ` — ${skill.data.proficiency}` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      ) : (
+        <p class="empty-state">Skills list coming soon.</p>
+      )
+    }
+  </section>
+
+  <section class="section" aria-labelledby="certifications-heading">
+    <h2 id="certifications-heading">Certifications</h2>
+    {
+      certifications.length > 0 ? (
+        <ul class="post-list">
+          {certifications.map((cert) => (
+            <li>
+              <h3>
+                {cert.data.credentialUrl ? (
+                  <a href={cert.data.credentialUrl}>{cert.data.name}</a>
+                ) : (
+                  cert.data.name
+                )}
+              </h3>
+              <p class="meta">{cert.data.issuer}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="empty-state">No confirmed certifications yet.</p>
+      )
+    }
+  </section>
+</BaseLayout>

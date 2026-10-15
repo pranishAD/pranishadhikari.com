@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout title="Projects" description="Cybersecurity and software projects by Pranish Adhikari.">
+  <h1>Projects</h1>
+  {
+    projects.length > 0 ? (
+      <ul class="card-grid">
+        {projects.map((project) => <ProjectCard project={project} />)}
+      </ul>
+    ) : (
+      <p class="empty-state">No projects published yet. Check back soon.</p>
+    )
+  }
+</BaseLayout>

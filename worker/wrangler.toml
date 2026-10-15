@@ -1,0 +1,43 @@
+# Cloudflare Worker config for the Sveltia CMS GitHub OAuth provider.
+#
+# Deploy with: wrangler deploy   (run from inside this worker/ directory)
+#
+# Nothing in this file is, or should ever become, a secret value. Secret
+# values (the OAuth client secret) are set out-of-band with
+# `wrangler secret put GITHUB_CLIENT_SECRET` and are never written here or
+# anywhere else in this repo.
+
+name = "pranishadhikari-cms-oauth"
+main = "oauth-worker.js"
+compatibility_date = "2025-01-01"
+
+# Non-secret variables. Safe to commit — none of these are credentials.
+[vars]
+# GitHub OAuth App's Client ID (public identifier, not a secret, but still
+# only ever read from env in code — never hardcoded).
+GITHUB_CLIENT_ID = "REPLACE_WITH_OAUTH_APP_CLIENT_ID"
+
+# Only "github.com" is needed unless Pranish ever moves to GitHub
+# Enterprise Server, which is not the case for this project.
+GITHUB_HOSTNAME = "github.com"
+
+# The ONLY GitHub login allowed to receive a token from this Worker.
+# [VERIFY] — inferred from this repo's local git noreply address
+# (69747762+pranishAD@users.noreply.github.com); Pranish must confirm this
+# is his real GitHub username before relying on it.
+ALLOWED_GITHUB_USERNAME = "pranishAD"
+
+# Comma-separated list of hostnames allowed to start the OAuth flow
+# against this Worker (checked against the Referer header on /auth).
+# Keep this to exactly the domains that serve public/admin/.
+ALLOWED_DOMAINS = "pranishadhikari.com"
+
+# --------------------------------------------------------------------
+# SECRET — set this after deploying, do not add it here:
+#
+#   wrangler secret put GITHUB_CLIENT_SECRET
+#
+# You will be prompted to paste the GitHub OAuth App's client secret.
+# Wrangler stores it encrypted in Cloudflare; it is never written to this
+# file, to the repo, or to any log this project controls.
+# --------------------------------------------------------------------
