@@ -26,8 +26,8 @@ Treat every item below as **[VERIFY] / Pranish's manual task**.
 
 1. **Create a GitHub OAuth App** at
    https://github.com/settings/developers → "New OAuth App", on the
-   account that owns `pranishAD/pranish-portfolio` (confirm exact
-   owner/repo — see the `[VERIFY]` note in `public/admin/config.yml`).
+   `pranishAD` account that owns `pranishAD/pranishadhikari.com`
+   (confirmed — see `docs/decisions.md` Decision 12 / D3).
    - Homepage URL: `https://pranishadhikari.com`
    - Authorization callback URL: `https://<your-worker-subdomain>.workers.dev/callback`
      (get the real Worker subdomain after your first `wrangler deploy`,
@@ -54,10 +54,9 @@ Treat every item below as **[VERIFY] / Pranish's manual task**.
    Paste the secret from step 1 when prompted. Wrangler stores it
    encrypted in Cloudflare; it never touches git.
 
-5. **Confirm `ALLOWED_GITHUB_USERNAME` in `wrangler.toml`** matches
-   Pranish's actual GitHub login. The current value (`pranishAD`) was
-   inferred from this repo's local git noreply address and must be
-   confirmed, not trusted blindly.
+5. ~~Confirm `ALLOWED_GITHUB_USERNAME` in `wrangler.toml` matches Pranish's
+   actual GitHub login.~~ **Done.** Confirmed as `pranishAD` (`docs/decisions.md`
+   Decision 12 / D3, 2026-10-16) — no longer an inferred guess.
 
 6. **Set `backend.base_url` in `public/admin/config.yml`** to the deployed
    Worker URL from step 2.
@@ -94,7 +93,7 @@ doesn't expose editing):
 3. **GitHub repo permissions** — Sveltia CMS's actual commit/write calls go
    through the GitHub REST API using the returned token, scoped to the
    `repo` OAuth scope. Only accounts with write/admin access to
-   `pranishAD/pranish-portfolio` can successfully commit regardless of
+   `pranishAD/pranishadhikari.com` can successfully commit regardless of
    whether they got a token, so even a misconfiguration in (2) would still
    be caught here by GitHub itself.
 
