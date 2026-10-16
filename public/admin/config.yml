@@ -167,7 +167,7 @@ collections:
             widget: markdown
             required: true
             modes: [rich_text]
-            buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+            buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code]
             hint: "Main About-page body text. Plain Markdown only — no raw HTML. The whole field may be the literal text [VERIFY] as a placeholder."
 
           - label: "Avatar / headshot"
@@ -223,7 +223,7 @@ collections:
         widget: markdown
         required: true
         modes: [rich_text]
-        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code]
         hint: "Full project write-up body. Plain Markdown only — no raw HTML. May be the literal text [VERIFY] as a placeholder."
 
       - label: "Tech stack"
@@ -312,7 +312,7 @@ collections:
     create: true
     delete: true
     slug: "{{slug}}"
-    summary: "{{title}} — {{pubDate}}{{#if draft}} (draft){{/if}}"
+    summary: "{{title}} — {{pubDate}}"
     fields:
       - label: "Title"
         name: title
@@ -349,7 +349,7 @@ collections:
         widget: markdown
         required: true
         modes: [rich_text]
-        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code, code-block]
+        buttons: [bold, italic, link, heading-one, heading-two, bulleted-list, numbered-list, quote, code]
         hint: "Post content — headings, lists, code blocks, links. Plain Markdown only — no raw HTML is possible from this editor."
 
       - label: "Tags"
