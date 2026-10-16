@@ -15,7 +15,7 @@ compatibility_date = "2025-01-01"
 [vars]
 # GitHub OAuth App's Client ID (public identifier, not a secret, but still
 # only ever read from env in code — never hardcoded).
-GITHUB_CLIENT_ID = "REPLACE_WITH_OAUTH_APP_CLIENT_ID"
+GITHUB_CLIENT_ID = "Ov23liI61KYzMo89r49Y"
 
 # Only "github.com" is needed unless Pranish ever moves to GitHub
 # Enterprise Server, which is not the case for this project.
