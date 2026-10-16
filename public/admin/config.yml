@@ -18,12 +18,10 @@
 
 backend:
   name: github
-  # [VERIFY] — no git remote was configured in this repo at the time this
-  # file was written, so the exact owner/repo could not be confirmed from
-  # the codebase. The value below is inferred only from the local git
-  # noreply address (69747762+pranishAD@users.noreply.github.com) and the
-  # working folder name — Pranish must confirm or correct this before the
-  # CMS can authenticate against the real repo.
+  # Confirmed by Pranish (docs/decisions.md Decision 12 / D3, 2026-10-16).
+  # No longer [VERIFY] — this was previously inferred only from the local
+  # git noreply address and the working folder name; it is now a direct
+  # confirmation, not an inference.
   repo: pranishAD/pranishadhikari.com
   branch: main
   # URL of the self-hosted OAuth Cloudflare Worker (see worker/ in this

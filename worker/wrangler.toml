@@ -22,9 +22,9 @@ GITHUB_CLIENT_ID = "REPLACE_WITH_OAUTH_APP_CLIENT_ID"
 GITHUB_HOSTNAME = "github.com"
 
 # The ONLY GitHub login allowed to receive a token from this Worker.
-# [VERIFY] — inferred from this repo's local git noreply address
-# (69747762+pranishAD@users.noreply.github.com); Pranish must confirm this
-# is his real GitHub username before relying on it.
+# Confirmed by Pranish (docs/decisions.md Decision 12 / D3, 2026-10-16).
+# No longer [VERIFY] — this was previously inferred only from this repo's
+# local git noreply address; it is now a direct confirmation.
 ALLOWED_GITHUB_USERNAME = "pranishAD"
 
 # Comma-separated list of hostnames allowed to start the OAuth flow

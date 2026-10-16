@@ -28,8 +28,9 @@ CI mechanics). Proposed top-level layout:
 ├── package.json
 ├── public/                  # static assets (favicon, robots.txt, images not processed by Astro)
 ├── src/
+│   ├── content.config.ts    # content collection schema definitions (Zod) — see Decision 13; this
+│   │                        # sketch's `content/config.ts` path is superseded, kept for history only
 │   ├── content/
-│   │   ├── config.ts        # content collection schema definitions (Zod)
 │   │   ├── profile/         # single-entry "about/bio" collection (see content-schema.md)
 │   │   ├── projects/        # one .md file per project
 │   │   ├── blog/            # one .md file per post
@@ -316,9 +317,11 @@ dev agents in Phases 1–3 of that plan.
   and commits is `pranishAD`. This resolves the `[VERIFY]` markers currently in
   `public/admin/config.yml` and `worker/wrangler.toml` on this point.
 - Rationale: Direct confirmation from Pranish.
-- Trade-off: None — this was a verification gap, not a design choice. Updating the two
-  `[VERIFY]` markers in those config files to this confirmed value is Phase 1 work
-  (owner: architect/qa-devops per the v2 plan), not done by this log entry.
+- Trade-off: None — this was a verification gap, not a design choice. The two `[VERIFY]`
+  markers in `public/admin/config.yml` and `worker/wrangler.toml` were updated to reflect
+  this confirmation in Phase 1 (2026-10-16) — see Decision 14. The `base_url` (Worker URL)
+  and `GITHUB_CLIENT_ID` placeholders in those same files are untouched; they depend on
+  the Worker deploy and OAuth App creation, not on this decision.
 
 **D4 — CMS publish mode: keep `simple`.**
 - **Decision:** Confirmed — Sveltia CMS stays on `publish_mode: simple`. Every save goes
@@ -343,5 +346,58 @@ dev agents in Phases 1–3 of that plan.
   Pranish, the same discipline Decision 7/9 already apply elsewhere in this log. If a
   site needs a display name distinct from its URL, that's a follow-up question, not an
   assumption to make now.
+
+---
+
+## 13. Content config file location: `src/content.config.ts`, not `src/content/config.ts`
+
+**Decision:** The real, build-required location is `src/content.config.ts` (repo root of
+`src/`), as the repo already has it. Section 1's tree above is corrected to match. The
+`src/content/config.ts` path this log originally sketched is the **older** Astro
+convention and is superseded — **no file move was made**, since the correct file already
+exists and is already wired up; this entry only reconciles the documentation with it.
+
+- Rationale: The installed Astro version in this repo is 7.3.8 (confirmed via
+  `node_modules/astro/package.json` during the Phase 1 foundation check, 2026-10-16).
+  Astro removed the legacy `src/content/config.ts` collection-config format; collections
+  must be declared in `src/content.config.ts` using an explicit loader (see
+  `https://docs.astro.build/en/reference/errors/legacy-content-config-error/`, and the
+  in-file comment at the top of `src/content.config.ts` itself, which already flagged
+  this exact discrepancy for architect/decisions.md). The file that exists uses
+  `glob()` loaders over `src/content/<name>/` per collection, which still matches every
+  collection name, folder path, and schema this log and `content-schema.md` specify —
+  only the one config file's own location/format changed, not the content layout.
+- Trade-off: None identified. This is a correction to stale documentation, not a design
+  trade-off — the repo was already right; the docs were describing an Astro version
+  older than what's installed.
+- Scope note: Per the Phase 1 brief this came from, this is a recommendation only — no
+  schema, collection, or dependency was changed to produce it, and nothing was moved.
+
+## 14. Phase 1 foundation check results (2026-10-16)
+
+**Decision:** Phase 1 ("foundation check") from `docs/portfolio-v2-plan.md` is complete
+for the three items in scope. Record of what was verified/changed, for anyone picking up
+Phase 2:
+
+- **Build status: PASS.** `npm install` (184 packages, 0 vulnerabilities) and
+  `npm run build` both completed cleanly on Node v24.21.0 / npm 11.19.0 — 7 pages built in
+  ~3s, no warnings or errors emitted by Astro or the content-collection sync step.
+- **Content config location:** reconciled, not moved — see Decision 13.
+- **`[VERIFY]` repo-name markers:** replaced. `public/admin/config.yml`'s `repo:` field
+  and `worker/wrangler.toml`'s `ALLOWED_GITHUB_USERNAME` already held the correct values
+  (`pranishAD/pranishadhikari.com` and `pranishAD`) — only the surrounding `[VERIFY]`
+  comments, which marked them as unconfirmed inferences, were updated to record Pranish's
+  confirmation (D3, Decision 12). The actual `repo:`/`ALLOWED_GITHUB_USERNAME` values were
+  not changed, since they were already correct.
+- **Explicitly untouched, per this phase's scope:** `base_url` (Worker URL placeholder)
+  and `GITHUB_CLIENT_ID` in both files remain `[VERIFY]`/placeholder — they depend on
+  deploying the Worker and creating the GitHub OAuth App, which are manual steps for
+  Pranish (see `worker/README.md`), not something this phase or decision resolves. No
+  schema changed, no collection added, no dependency added.
+- Rationale: Matches the Phase 1 brief exactly — confirm the build is healthy and close
+  out the two documentation/config discrepancies the v2 plan flagged, without touching
+  anything the plan scoped to later phases (schemas → Phase 3, admin wiring/deploy →
+  Phase 2).
+- Trade-off: None — this phase was verification and doc/comment reconciliation only.
 
 ---
