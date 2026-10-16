@@ -67,6 +67,23 @@ const STATE_COOKIE_NAME = "sveltia_oauth_state";
  *      — never to "*" — so a token can't be leaked to an unrelated page.
  */
 function renderCallbackPage({ status, provider, payload }) {
+  // On failure, show the (non-secret) reason in the popup so it can be read, instead of
+  // silently handing it to the opener, which only reports "Authentication failed".
+  if (status !== "success") {
+    const text = String((payload && payload.message) || "Unknown error")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return `<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>Sign-in error</title></head>
+  <body>
+    <p><strong>Sign-in error:</strong> ${text}</p>
+    <p>You can close this window and try again.</p>
+  </body>
+</html>`;
+  }
+
   const resultMessage =
     status === "success"
       ? `authorization:${provider}:success:${JSON.stringify(payload)}`
