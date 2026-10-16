@@ -154,6 +154,11 @@ custom logo mark (text wordmark "Pranish Adhikari" is enough for v1).
 
 ## 7. CMS editor scope for v1
 
+> **[SUPERSEDED by Decision 12 / D2, 2026-10-16]** — the "exactly three collections" cap
+> below no longer holds. Pranish approved a fourth collection, `hobby`, with thumbnail
+> fields. See Decision 12 for the current scope. This entry is left intact for history;
+> do not treat the "three collections" language as current.
+
 **Decision:** Sveltia CMS at `/admin` exposes exactly three collections in v1: **blog
 posts**, **projects**, and **About/bio fields** (the `profile` collection). No nav-label
 editing, no site-wide `settings` collection, in v1.
@@ -273,3 +278,70 @@ only**, for frontend-dev/cms-dev to raise with Pranish before installing:
 
 None of the above are required to finalize repo structure or content schemas, and none
 are assumed or installed by this log.
+
+---
+
+## 12. Phase 0 decisions — v2 plan (2026-10-16)
+
+Source: Pranish's answers to D1–D5 in `docs/portfolio-v2-plan.md` Section 2, given
+2026-10-16. Logged here per that plan's Phase 0 output requirement. No code or config
+has been changed by this entry — these are decisions to be carried out by the relevant
+dev agents in Phases 1–3 of that plan.
+
+**D1 — Static vs. database: Option A (stay static).**
+- **Decision:** Confirmed. No database, no Supabase/Neon, no Vercel/Cloudflare function
+  for content storage. Sveltia CMS continues writing Markdown/images straight to the
+  GitHub repo; GitHub Pages rebuilds on each save.
+- Rationale: Matches CLAUDE.md's "no servers, no databases" and the free-tier
+  constraint; the static path is already built and partly configured.
+- Trade-off: Publishing a CMS edit still takes the length of a build (seconds to low
+  minutes), and the site cannot hold per-visitor state. Per the plan, this is to be
+  revisited only when the CTF/Hack Me project starts — not before, and not as part of
+  this build.
+
+**D2 — New `hobby` CMS collection with thumbnails: approved. Supersedes Decision 7.**
+- **Decision:** The CMS scope cap in Decision 7 ("exactly three collections: blog,
+  projects, profile") is superseded. Sveltia CMS now exposes **four** collections in v1:
+  `blog`, `projects`, `profile`, and the new `hobby` collection. `projects` and `blog`
+  also gain thumbnail fields (`thumbnail`, `thumbnailAlt`), per the v2 plan Section 3.
+- Rationale: Pranish's explicit answer to D2 ("yes") — hobby sites (mostly Vercel
+  projects) and thumbnails for projects/blog are things he wants editable from `/admin`.
+- Trade-off: Same risk Decision 7 was originally guarding against — a bad CMS edit can
+  now touch one more collection and two more fields on existing ones. No nav-label or
+  `settings` collection editing is added; that part of Decision 7 still stands.
+- Exact field shape for `hobby` is D5, below, not this entry.
+
+**D3 — Repo name and GitHub login: confirmed.**
+- **Decision:** The repo is `pranishAD/pranishadhikari.com`; the GitHub login for OAuth
+  and commits is `pranishAD`. This resolves the `[VERIFY]` markers currently in
+  `public/admin/config.yml` and `worker/wrangler.toml` on this point.
+- Rationale: Direct confirmation from Pranish.
+- Trade-off: None — this was a verification gap, not a design choice. Updating the two
+  `[VERIFY]` markers in those config files to this confirmed value is Phase 1 work
+  (owner: architect/qa-devops per the v2 plan), not done by this log entry.
+
+**D4 — CMS publish mode: keep `simple`.**
+- **Decision:** Confirmed — Sveltia CMS stays on `publish_mode: simple`. Every save goes
+  straight to `main` with no PR/review step. The editorial-workflow alternative (saves
+  become pull requests) was offered and declined.
+- Rationale: Pranish is the sole editor; a review step would add friction with no second
+  reviewer to gate it.
+- Trade-off: Unreviewed saves reach production immediately — this was already flagged as
+  a risk in the v2 plan (Section 6) and is unchanged by this decision, just confirmed
+  rather than left open.
+
+**D5 — Hobby collection fields: links + thumbnail + description.**
+- **Decision:** The `hobby` collection (added under D2) holds, per entry: a URL
+  (the hobby/Vercel site link), a thumbnail image + alt text, and a one-line description.
+  This is Pranish's literal answer and is **narrower** than the field list the v2 plan
+  sketched in Section 3 (`name`, `description`, `url`, `thumbnail`, `thumbnailAlt`,
+  `order`, `featured`, `verified`).
+- Rationale: Confirmed scope should be exactly what was asked, not the plan's superset.
+- Trade-off / open point: `name`, `order`, `featured`, and `verified` from the plan's
+  Section 3 sketch are **not yet approved** — they are not part of this decision.
+  cms-dev/architect should not add them to the `hobby` schema without going back to
+  Pranish, the same discipline Decision 7/9 already apply elsewhere in this log. If a
+  site needs a display name distinct from its URL, that's a follow-up question, not an
+  assumption to make now.
+
+---
