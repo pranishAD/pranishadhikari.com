@@ -417,7 +417,7 @@ collections:
     folder: "src/content/hobby"
     create: true
     delete: true
-    slug: "hobby-{{ouid}}"
+    slug: "hobby-{{uuid_shorter}}"
     summary: "{{url}}"
     fields:
       - label: "URL"
