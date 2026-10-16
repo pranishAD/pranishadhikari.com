@@ -26,7 +26,7 @@ backend:
   branch: main
   # URL of the self-hosted OAuth Cloudflare Worker (see worker/ in this
   # repo). Must be set to the Worker's deployed URL after `wrangler deploy`.
-  base_url: https://REPLACE-WITH-YOUR-WORKER-SUBDOMAIN.workers.dev # [VERIFY] set after deploying worker/
+  base_url: https://pranishadhikari-cms-oauth.pranishadhikari77.workers.dev
   auth_endpoint: auth
 
 # Simple publish mode: saving in the CMS commits directly to `branch` above
