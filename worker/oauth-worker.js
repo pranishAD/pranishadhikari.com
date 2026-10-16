@@ -138,7 +138,22 @@ async function handleAuth(request, env) {
     refererHostname = "";
   }
 
-  if (!hostnameAllowed(refererHostname, allowedDomains)) {
+  // Sveltia CMS opens this endpoint in a popup that may not send a Referer, but it
+  // always passes the site's hostname as `site_id`. Accept either, checked against
+  // the same allowlist. This is an abuse guard only: the real access control is the
+  // ALLOWED_GITHUB_USERNAME check in /callback and the repo permissions on GitHub.
+  let siteIdHostname = "";
+  try {
+    const siteId = new URL(request.url).searchParams.get("site_id") || "";
+    siteIdHostname = siteId ? new URL(`https://${siteId}`).hostname : "";
+  } catch {
+    siteIdHostname = "";
+  }
+
+  if (
+    !hostnameAllowed(refererHostname, allowedDomains) &&
+    !hostnameAllowed(siteIdHostname, allowedDomains)
+  ) {
     return new Response(
       "Forbidden: this OAuth endpoint is not configured to accept requests from this site.",
       { status: 403 },
