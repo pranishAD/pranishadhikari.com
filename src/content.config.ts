@@ -78,30 +78,68 @@ const projectLink = z.object({
   type: z.enum(['repo', 'writeup', 'demo', 'other']),
 });
 
+// Cross-cutting rule (Phase 3, 2026-10-16): on `projects`, `blog`, and `hobby`,
+// `thumbnailAlt` is required whenever `thumbnail` is set — an image with no alt
+// text is a malformed entry, not a valid "thumbnail not ready yet" placeholder.
+// Omitting both fields entirely (no thumbnail yet) remains valid.
+function requireAltWithThumbnail<T extends { thumbnail?: string; thumbnailAlt?: string }>(
+  data: T,
+) {
+  return !data.thumbnail || !!data.thumbnailAlt;
+}
+const THUMBNAIL_ALT_ISSUE = {
+  message: 'thumbnailAlt is required whenever thumbnail is set.',
+  path: ['thumbnailAlt'],
+};
+
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
-  schema: z.object({
-    title: z.string(),
-    summary: z.string().max(200),
-    techStack: z.array(z.string()).default([]),
-    role: z.string().optional(),
-    links: z.array(projectLink).default([]),
-    date: z.coerce.date(),
-    featured: z.boolean().default(false),
-    verified: z.boolean().default(false),
-  }),
+  schema: z
+    .object({
+      title: z.string(),
+      summary: z.string().max(200),
+      techStack: z.array(z.string()).default([]),
+      role: z.string().optional(),
+      links: z.array(projectLink).default([]),
+      date: z.coerce.date(),
+      featured: z.boolean().default(false),
+      verified: z.boolean().default(false),
+      thumbnail: z.string().optional(),
+      thumbnailAlt: z.string().optional(),
+    })
+    .refine(requireAltWithThumbnail, THUMBNAIL_ALT_ISSUE),
 });
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
-  schema: z.object({
-    title: z.string(),
-    pubDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-    summary: z.string(),
-    tags: z.array(z.string()).default([]),
-    draft: z.boolean().default(true),
-  }),
+  schema: z
+    .object({
+      title: z.string(),
+      pubDate: z.coerce.date(),
+      updatedDate: z.coerce.date().optional(),
+      summary: z.string(),
+      tags: z.array(z.string()).default([]),
+      draft: z.boolean().default(true),
+      thumbnail: z.string().optional(),
+      thumbnailAlt: z.string().optional(),
+    })
+    .refine(requireAltWithThumbnail, THUMBNAIL_ALT_ISSUE),
+});
+
+// `hobby` — added under Decision 12 / D2 (2026-10-16), superseding Decision 7's
+// three-collection cap. Fields are exactly D5's approved scope (url + thumbnail +
+// description) — no `name`, `order`, `featured`, or `verified` field, since those
+// were explicitly flagged as not approved pending a follow-up decision.
+const hobby = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/hobby' }),
+  schema: z
+    .object({
+      url: z.string(),
+      description: z.string().max(200),
+      thumbnail: z.string().optional(),
+      thumbnailAlt: z.string().optional(),
+    })
+    .refine(requireAltWithThumbnail, THUMBNAIL_ALT_ISSUE),
 });
 
 const skills = defineCollection({
@@ -140,6 +178,7 @@ export const collections = {
   profile,
   projects,
   blog,
+  hobby,
   skills,
   certifications,
   socials,

@@ -38,6 +38,15 @@ Astro config code or CMS YAML (that's frontend-dev's / cms-dev's job to write fr
 5. **Collection type.** Astro's `defineCollection({ type: 'content', schema: ... })` for
    every collection below (Markdown-backed), per CLAUDE.md's "Astro with Markdown content
    collections."
+6. **`thumbnail` / `thumbnailAlt` pairing (added Phase 3, 2026-10-16).** Wherever both
+   fields appear below (`projects`, `blog`, `hobby`), `thumbnail` is optional — omitting
+   it entirely is valid, matching the existing `profile.avatar` convention (never fake a
+   placeholder/stock image). But if `thumbnail` **is** set, `thumbnailAlt` is required —
+   enforced as a schema-level refinement, not just a hint, so a thumbnail with no alt
+   text fails the build rather than shipping an accessibility gap. 16:9 (1200×675), WebP
+   or JPEG, under 300 KB — enforced in the CMS widget's `max_file_size` and left to CI to
+   double-check (qa-devops), not the Zod schema (Zod validates the stored path string,
+   not the uploaded file's dimensions/bytes).
 
 ---
 
@@ -82,6 +91,8 @@ minimum count to build).
 | `date` | date | yes | yes (may hold a placeholder far-future/null-like sentinel only if truly unknown — prefer requiring real date before publish via CI, not schema) | Used for sort order if projects are ever ordered by recency. |
 | `featured` | boolean | no, defaults `false` | no | Lets Home page pull a subset without a separate "featured projects" collection. |
 | `verified` | boolean | yes, defaults `false` | no | Explicit flag: true only once Pranish has confirmed every fact in this entry. CI/build tooling (qa-devops) should be able to filter on this rather than re-parsing for the string `[VERIFY]`. |
+| `thumbnail` | image (string path) | no | no | Added Phase 3. 16:9, WebP/JPEG, under 300 KB. Omit entirely rather than fake a placeholder image — see cross-cutting rule 6. |
+| `thumbnailAlt` | string | required only if `thumbnail` is set | no | Added Phase 3. Enforced via schema refinement — see cross-cutting rule 6. |
 
 **Rationale for `verified: boolean` here but not relying on it alone:** per PRD US-3
 AC3, unverified projects must not publish. A boolean is the clean mechanism; the
@@ -107,10 +118,34 @@ count.
 | `body` | markdown | yes | yes | Post content — headings, code blocks, lists, links only; no raw HTML (PRD US-5 AC1, cross-cutting rule 1). |
 | `tags` | array of string | no (may be empty `[]`) | yes, per-item | Free-text tags, e.g. `["writeup", "networking"]`. No tag value may be `"ctf"`/`"hackme"` as a de facto section stub — tags are free text for Pranish's own taxonomy, but this collection carries no CTF *feature* (no CTF-specific field, filter, or route), consistent with PRD Section 3. |
 | `draft` | boolean | yes, defaults `true` | no | Build/listing pages should exclude `draft: true` posts from production output — a frontend/build concern, documented here because it's the mechanism that lets an empty-but-functional blog ship (all posts can stay `draft: true` until ready). |
+| `thumbnail` | image (string path) | no | no | Added Phase 3. 16:9, WebP/JPEG, under 300 KB. Omit entirely rather than fake a placeholder image — see cross-cutting rule 6. |
+| `thumbnailAlt` | string | required only if `thumbnail` is set | no | Added Phase 3. Enforced via schema refinement — see cross-cutting rule 6. |
 
 ---
 
-## 4. `skills`
+## 4. `hobby` (added Phase 3, 2026-10-16)
+
+One Markdown file per hobby/side-project site under `src/content/hobby/` (mostly Vercel
+deploys, per the v2 plan). Added under **Decision 12 / D2**, which supersedes Decision
+7's three-collection cap — v1 now exposes four CMS collections, not three. Collection may
+contain zero or more entries, same convention as `projects`/`blog`.
+
+Fields are **exactly** Decision 12 / D5's approved scope: a link, a thumbnail, and a
+description. There is deliberately **no** `name`, `order`, `featured`, or `verified`
+field — the v2 plan's Section 3 sketch proposed those too, but D5's literal answer was
+narrower, and the extra fields were explicitly flagged as not approved. Do not add them
+without a new decision from Pranish recorded in `docs/decisions.md`.
+
+| Field | Type | Required | VERIFY-able | Notes |
+|---|---|---|---|---|
+| `url` | string (URL) | yes | yes | The hobby/Vercel site's link. No `name` field — the CMS list view and slug are keyed off this URL/an opaque ID instead (see `config.yml`'s `hobby` collection: `slug: "hobby-{{ouid}}"`), not a display title. |
+| `description` | string, max 200 chars | yes | yes | One-line description per entry (D5). |
+| `thumbnail` | image (string path) | no | no | 16:9, WebP/JPEG, under 300 KB. Omit entirely rather than fake a placeholder image — see cross-cutting rule 6. |
+| `thumbnailAlt` | string | required only if `thumbnail` is set | no | Enforced via schema refinement — see cross-cutting rule 6. |
+
+---
+
+## 6. `skills`
 
 One Markdown file per skill under `src/content/skills/`, or (frontend-dev's/cms-dev's
 implementation choice) entries may be grouped into categories — schema below assumes
@@ -126,7 +161,7 @@ of a nested collection.
 
 ---
 
-## 5. `certifications`
+## 7. `certifications`
 
 One Markdown file per certification/credential under `src/content/certifications/`.
 Collection may be empty (PRD: certs are [VERIFY], possibly none exist yet).
@@ -142,7 +177,7 @@ Collection may be empty (PRD: certs are [VERIFY], possibly none exist yet).
 
 ---
 
-## 6. `socials`
+## 8. `socials`
 
 One Markdown file per social/contact link under `src/content/socials/` (e.g. GitHub,
 LinkedIn, email). Backs the Home/About "contact method" links for v1 (Decision 4 —
@@ -161,7 +196,7 @@ must not be pre-stubbed here.
 
 ---
 
-## 7. `settings` — reserved shape, NOT built or wired in v1
+## 9. `settings` — reserved shape, NOT built or wired in v1
 
 Per Decision 7 (CMS editor scope), no `settings` collection is registered in Astro's
 `src/content/config.ts` or exposed in Sveltia's `config.yml` in v1. This section exists
@@ -184,9 +219,14 @@ with `"[VERIFY]"` sub-fields) in the repo today, and none of them may block a bu
 - `profile`: `headline`, `location`, education items, employment items, `bio`, `resumeUrl`
 - `projects`: `title`, `summary`, `description`, techStack items, `role`, link urls, `date`
 - `blog`: `title`, `pubDate`, `updatedDate`, `summary`, `body`, tag items
+- `hobby`: `url`, `description`
 - `skills`: `name`, `proficiency`
 - `certifications`: `name`, `issuer`, `issueDate`, `expiryDate`, `credentialUrl`
 - `socials`: `url` (rarely needed, but permitted — e.g. if a profile URL isn't settled yet)
+
+`thumbnail`/`thumbnailAlt` (on `projects`, `blog`, `hobby`) are **not** VERIFY-able —
+they're optional and omitted entirely rather than holding a placeholder value (cross-
+cutting rule 6).
 
 Blocking `[VERIFY]` content from reaching production (PRD's "zero [VERIFY] markers
 remain in published content" Done Criterion) is a CI/lint responsibility (qa-devops),

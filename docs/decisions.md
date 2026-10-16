@@ -401,3 +401,44 @@ Phase 2:
 - Trade-off: None — this phase was verification and doc/comment reconciliation only.
 
 ---
+
+## 15. Phase 3 content model additions (2026-10-16)
+
+**Decision:** Phase 3 from `docs/portfolio-v2-plan.md` is implemented: `thumbnail` +
+`thumbnailAlt` added to `projects` and `blog`; the `hobby` collection added per D2/D5.
+Record of what was built, for frontend-dev/designer picking this up in Phase 4:
+
+- **`thumbnail` / `thumbnailAlt`** added to `projects` and `blog` in
+  `src/content.config.ts` (both `z.string().optional()`) and to `public/admin/config.yml`
+  (both `image`/`string` widgets, `required: false`). A Zod `.refine()` on each schema
+  enforces that `thumbnailAlt` is required whenever `thumbnail` is set — verified by
+  deliberately building a malformed entry (thumbnail with no alt), confirming the build
+  failed with a clear `InvalidContentEntryDataError` naming `thumbnailAlt`, then removing
+  it and confirming a clean build again. Omitting both fields (no thumbnail yet) stays
+  valid, matching the existing `profile.avatar` convention.
+- **`hobby` collection** added to `src/content.config.ts`, `public/admin/config.yml`, and
+  `docs/content-schema.md` (new Section 4; `skills`/`certifications`/`socials`/`settings`
+  renumbered 6/7/8/9). Fields are exactly D5's approved scope — `url` (required),
+  `description` (required, max 200 chars), `thumbnail` + `thumbnailAlt` (optional, same
+  refinement rule as above). **No** `name`, `order`, `featured`, or `verified` field was
+  added — those were explicitly flagged as not approved in Decision 12/D5 and still
+  aren't. Because there's no `name`/title field, the CMS collection has no natural slug
+  source; `public/admin/config.yml` uses `slug: "hobby-{{ouid}}"` (Decap/Sveltia's
+  built-in unique-id template tag) instead of inventing an unapproved field to key off.
+- Added `src/content/hobby/template-hobby-one.md` as a throwaway placeholder entry
+  (`[VERIFY]` url/description, no thumbnail), matching the template-entry convention
+  already used for `projects`/`certifications`/`skills`.
+- `public/admin/config.yml`'s top-of-file scope comment, which still said "exactly three
+  collections" (stale even after Decision 7 was marked superseded), is corrected to four.
+- Rationale: Implements the v2 plan's Phase 3 scope exactly, using only what D2/D5
+  already approved.
+- Trade-off: None identified. `npm run build` passes clean on the current content
+  (7 pages, no warnings).
+- Explicitly **not** done in this phase, per the plan's phase split: no `/hobby` Astro
+  page or route, and no thumbnail rendering wired into the existing Projects/Blog
+  templates. The plan assigns page layout for Home/Projects/Blog/Hobby to **Phase 4**
+  (designer → frontend-dev); building pages now would mean designing them twice once
+  Phase 4's tokens/layout exist. Flagging this explicitly so it isn't mistaken for an
+  oversight.
+
+---

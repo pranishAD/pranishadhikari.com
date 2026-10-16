@@ -1,12 +1,12 @@
 ########################################################################
 # Sveltia CMS configuration — pranishadhikari.com
 #
-# Scope note (per docs/decisions.md Section 7 and docs/content-schema.md):
-# v1 exposes EXACTLY three collections here: profile, projects, blog.
-# `skills`, `certifications`, `socials`, and `settings` are documented in
-# docs/content-schema.md for the Astro side but are explicitly NOT wired
-# into this CMS config in v1 — do not add them without a new decision from
-# Pranish recorded in docs/decisions.md.
+# Scope note (per docs/decisions.md Decision 12/D2, superseding Section 7, and
+# docs/content-schema.md): v1 exposes exactly FOUR collections here: profile,
+# projects, blog, hobby. `skills`, `certifications`, `socials`, and `settings`
+# are documented in docs/content-schema.md for the Astro side but are
+# explicitly NOT wired into this CMS config in v1 — do not add them without a
+# new decision from Pranish recorded in docs/decisions.md.
 #
 # There is no Hack Me / CTF collection, field, or option anywhere in this
 # file, and there must never be (docs/PRD.md Section 3).
@@ -286,6 +286,21 @@ collections:
         time_format: false
         hint: "Project date, used for sort order. Pick the closest known real date if the exact date isn't confirmed — do not fabricate a precise date."
 
+      - label: "Thumbnail"
+        name: thumbnail
+        widget: image
+        required: false
+        media_library:
+          config:
+            max_file_size: 300000
+        hint: "16:9 (1200×675), WebP or JPEG, under 300 KB. Leave empty rather than uploading a placeholder/stock image — a project with no thumbnail yet is valid."
+
+      - label: "Thumbnail alt text"
+        name: thumbnailAlt
+        widget: string
+        required: false
+        hint: "Required if a thumbnail is set above (the build fails otherwise) — describe the image for screen readers. Leave both fields empty together if there's no thumbnail yet."
+
       - label: "Featured on Home page?"
         name: featured
         widget: boolean
@@ -365,9 +380,75 @@ collections:
           required: true
           hint: "A single tag word/phrase."
 
+      - label: "Thumbnail"
+        name: thumbnail
+        widget: image
+        required: false
+        media_library:
+          config:
+            max_file_size: 300000
+        hint: "16:9 (1200×675), WebP or JPEG, under 300 KB. Leave empty rather than uploading a placeholder/stock image — a post with no thumbnail yet is valid."
+
+      - label: "Thumbnail alt text"
+        name: thumbnailAlt
+        widget: string
+        required: false
+        hint: "Required if a thumbnail is set above (the build fails otherwise) — describe the image for screen readers. Leave both fields empty together if there's no thumbnail yet."
+
       - label: "Draft"
         name: draft
         widget: boolean
         required: true
         default: true
         hint: "Keep ON until this post is ready to publish. Draft posts must be excluded from the live blog index/build."
+
+  # ------------------------------------------------------------------
+  # 4. hobby — one Markdown file per hobby/side-project site
+  #    Astro source: src/content/hobby/*.md
+  #    Matches docs/content-schema.md Section 7. Added under Decision 12/D2
+  #    (2026-10-16), superseding Decision 7's three-collection cap. Fields
+  #    are exactly D5's approved scope — url + thumbnail + description.
+  #    No "name"/"order"/"featured"/"verified" field: those were explicitly
+  #    flagged as not approved and must not be added without asking Pranish.
+  # ------------------------------------------------------------------
+  - name: hobby
+    label: "Hobby Sites"
+    description: "Links to Pranish's hobby/side-project sites (mostly Vercel deploys). May have zero entries."
+    folder: "src/content/hobby"
+    create: true
+    delete: true
+    slug: "hobby-{{ouid}}"
+    summary: "{{url}}"
+    fields:
+      - label: "URL"
+        name: url
+        widget: string
+        required: true
+        pattern:
+          [
+            "^(\\[VERIFY\\]|https://.+)$",
+            "Must be a full https:// URL, or the literal text [VERIFY] if the link isn't public yet.",
+          ]
+        hint: "Full https:// URL to the hobby site."
+
+      - label: "Description"
+        name: description
+        widget: text
+        required: true
+        pattern: ["^.{1,200}$", "Must be 1–200 characters."]
+        hint: "One-line description of this site (max 200 characters). Use [VERIFY: ...] as a placeholder if not yet confirmed."
+
+      - label: "Thumbnail"
+        name: thumbnail
+        widget: image
+        required: false
+        media_library:
+          config:
+            max_file_size: 300000
+        hint: "16:9 (1200×675), WebP or JPEG, under 300 KB. Leave empty rather than uploading a placeholder/stock image — a site with no thumbnail yet is valid."
+
+      - label: "Thumbnail alt text"
+        name: thumbnailAlt
+        widget: string
+        required: false
+        hint: "Required if a thumbnail is set above (the build fails otherwise) — describe the image for screen readers. Leave both fields empty together if there's no thumbnail yet."
